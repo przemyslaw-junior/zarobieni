@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Edytuj profil{% endblock %}
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-card shadow-lg rounded-4 p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <p class="text-muted small mb-1">Uzupełnij dane</p>
+                <h2 class="fw-bold mb-0">Edytuj profil wykonawcy</h2>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm rounded-pill" href="{% url 'profiles:detail' profile_user.username %}">Podgląd</a>
+        </div>
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="col-md-6">
+                <label class="form-label">Stawka (PLN/h)</label>
+                {{ form.stawka_h }}
+                {% if form.stawka_h.errors %}<div class="text-danger small">{{ form.stawka_h.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Dostępność</label>
+                {{ form.dostepnosc }}
+                {% if form.dostepnosc.errors %}<div class="text-danger small">{{ form.dostepnosc.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <label class="form-label">Rodzaje prac (rozdziel przecinkami)</label>
+                {{ form.kategorie }}
+                {% if form.kategorie.errors %}<div class="text-danger small">{{ form.kategorie.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <label class="form-label">Opis / bio</label>
+                {{ form.bio }}
+                {% if form.bio.errors %}<div class="text-danger small">{{ form.bio.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-12 d-flex align-items-center gap-2">
+                {{ form.ok_dla_niepelnoletnich }}
+                <label class="form-label mb-0">OK dla niepełnoletnich</label>
+                {% if form.ok_dla_niepelnoletnich.errors %}<div class="text-danger small">{{ form.ok_dla_niepelnoletnich.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+                <button class="btn btn-gradient w-100" type="submit">Zapisz</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

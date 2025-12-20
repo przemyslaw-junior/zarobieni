@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Zlecenia{% endblock %}
+{% block content %}
+<div class="list-wrapper">
+    <div class="glass-card shadow-lg rounded-4 p-4 p-md-5">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+            <div>
+                <p class="text-muted small mb-1">Szybkie zlecenia i pomoc w Twojej okolicy</p>
+                <h2 class="fw-bold mb-0">{% if mode == 'client' %}Potrzebuję pomocy{% else %}Szukam zlecenia{% endif %}</h2>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end">
+                    <div class="text-muted small">Dziś dostępnych zleceń:</div>
+                    <div class="fw-bold">{{ zlecenia|length }}</div>
+                </div>
+                {% if user.is_authenticated %}
+                    {% if user.is_client %}
+                        <a class="btn btn-gradient shadow-lg" href="{% url 'jobs:create' %}">+ Dodaj zlecenie</a>
+                    {% else %}
+                        <a class="btn btn-outline-dark rounded-pill" href="{% url 'jobs:list' %}?mode=client">Potrzebuję pomocy</a>
+                    {% endif %}
+                {% else %}
+                    <a class="btn btn-outline-dark rounded-pill" href="{% url 'accounts:register' %}">Potrzebuję pomocy</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="toggle-bar d-flex mt-2 mb-4 rounded-pill overflow-hidden">
+            <a class="flex-fill text-center py-2 {% if mode == 'worker' %}active{% endif %}" href="?mode=worker">Szukam zlecenia</a>
+            <a class="flex-fill text-center py-2 {% if mode == 'client' %}active{% endif %}" href="?mode=client">Potrzebuję pomocy</a>
+        </div>
+
+        <form method="get" class="filter-form row g-3 align-items-center mb-4">
+            <input type="hidden" name="mode" value="{{ mode }}">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label text-muted small mb-1">Miasto / dzielnica</label>
+                <input class="form-control form-control-lg" name="miasto" value="{{ form.miasto.value|stringformat:'s' }}" placeholder="np. Warszawa / Mokotów">
+            </div>
+            <div class="col-lg-9 col-md-6">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="form-check-chip">
+                        <input class="btn-check" type="checkbox" name="tylko_dzis" id="f-dzis" value="on" {% if form.data.tylko_dzis %}checked{% endif %}>
+                        <label class="chip {% if form.data.tylko_dzis %}chip-active{% endif %}" for="f-dzis">Dziś</label>
+                    </div>
+                    <div class="form-check-chip">
+                        <input class="btn-check" type="checkbox" name="tylko_weekend" id="f-weekend" value="on" {% if form.data.tylko_weekend %}checked{% endif %}>
+                        <label class="chip {% if form.data.tylko_weekend %}chip-active{% endif %}" for="f-weekend">Weekend</label>
+                    </div>
+                    <div class="form-check-chip">
+                        <input class="btn-check" type="checkbox" name="max_czas" id="f-czas" value="on" {% if form.data.max_czas %}checked{% endif %}>
+                        <label class="chip {% if form.data.max_czas %}chip-active{% endif %}" for="f-czas">Do 2h</label>
+                    </div>
+                    <div class="form-check-chip">
+                        <input class="btn-check" type="checkbox" name="max_stawka" id="f-stawka" value="on" {% if form.data.max_stawka %}checked{% endif %}>
+                        <label class="chip {% if form.data.max_stawka %}chip-active{% endif %}" for="f-stawka">Do 40 zł/h</label>
+                    </div>
+                    <div class="form-check-chip">
+                        <input class="btn-check" type="checkbox" name="ok_dla_niepelnoletnich" id="f-mlodzi" value="on" {% if form.data.ok_dla_niepelnoletnich %}checked{% endif %}>
+                        <label class="chip {% if form.data.ok_dla_niepelnoletnich %}chip-active{% endif %}" for="f-mlodzi">Dla niepełnoletnich OK</label>
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">Filtruj</button>
+                    <a class="ms-1 small" href="?mode={{ mode }}">Wyczyść</a>
+                </div>
+            </div>
+        </form>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                {% if mode == 'client' %}
+                    <h5 class="fw-bold mb-2">Twoje zlecenia</h5>
+                    <p class="text-muted small mb-3">Przejrzyj statusy i edytuj swoje ogłoszenia</p>
+                    {% if user.is_authenticated and user.is_client %}
+                        {% for z in zlecenia %}
+                        <div class="job-card shadow-sm rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <a class="job-title" href="{{ z.get_absolute_url }}">{{ z.tytul }}</a>
+                                    <div class="text-muted small">
+                                        {{ z.data_start }} • {{ z.miasto }}{% if z.dzielnica %}, {{ z.dzielnica }}{% endif %} • {{ z.kategoria }}
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ z.opis|truncatewords:24 }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-light text-dark">{{ z.get_status_display }}</span>
+                                    <div class="fw-bold mt-1 text-success">{{ z.stawka_h }} zł/h</div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-2 flex-wrap">
+                                <a class="btn btn-outline-secondary btn-sm" href="{% url 'jobs:edit' z.pk %}">Edytuj</a>
+                                <a class="btn btn-outline-danger btn-sm" href="{% url 'jobs:cancel' z.pk %}">Anuluj</a>
+                            </div>
+                        </div>
+                        {% empty %}
+                            <p>Nie masz jeszcze zleceń. Dodaj pierwsze, aby znaleźć pomoc w okolicy.</p>
+                        {% endfor %}
+                    {% else %}
+                        <p>Aby zobaczyć swoje zlecenia, <a href="{% url 'accounts:login' %}">zaloguj się</a> lub <a href="{% url 'accounts:register' %}">zarejestruj jako zleceniodawca</a>.</p>
+                    {% endif %}
+                {% else %}
+                    <h5 class="fw-bold mb-2">Zlecenia w Twojej okolicy</h5>
+                    <p class="text-muted small mb-3">Kliknij, aby zobaczyć szczegóły i zgłosić się</p>
+                    {% for z in zlecenia %}
+                    <div class="job-card shadow-sm rounded-3 p-3 mb-3">
+                        <div class="d-flex">
+                            <div class="avatar me-3">{{ z.tytul|first|upper }}</div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <a class="job-title" href="{{ z.get_absolute_url }}">{{ z.tytul }}</a>
+                                        <div class="text-muted small">
+                                            {{ z.data_start }} • {{ z.miasto }}{% if z.dzielnica %}, {{ z.dzielnica }}{% endif %} • {{ z.kategoria }}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="price text-success fw-bold">{{ z.stawka_h }} zł/h</div>
+                                        <span class="badge bg-light text-dark">{{ z.get_status_display }}</span>
+                                    </div>
+                                </div>
+                                <p class="mb-2 text-muted small">{{ z.opis|truncatewords:22 }}</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="chip muted">czas: {{ z.czas_trwania_h }}h</span>
+                                    {% if z.ok_dla_niepelnoletnich %}<span class="chip chip-active">OK dla 16+</span>{% endif %}
+                                    <span class="chip muted">{{ z.kategoria }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>Brak zleceń.</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-lg-4">
+                <div class="profile-card shadow-sm rounded-3 p-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="profile-avatar me-3">👤</div>
+                        <div>
+                            <div class="fw-bold">Przykładowy profil wykonawcy</div>
+                            <div class="text-muted small">Idealne dla młodych osób szukających fuch</div>
+                        </div>
+                    </div>
+                    <div class="border rounded-3 p-3">
+                        <div class="fw-bold">Michał, 17 lat</div>
+                        <div class="text-muted small">Licealista • Warszawa, Ursynów</div>
+                        <div class="text-warning small">★ 4.8 (19 opinii)</div>
+                        <div class="chip-row my-2">
+                            <span class="chip muted">25–40 zł/h</span>
+                            <span class="chip muted">Popołudnia + weekend</span>
+                            <span class="chip muted">OK dla niepełnoletnich</span>
+                        </div>
+                        <p class="text-muted small mb-2">Szukam drobnych zleceń po szkole i w weekendy – mogę wyprowadzić psa, skosić trawnik, wynieść rzeczy do piwnicy albo zrobić zakupy.</p>
+                        {% if user.is_authenticated %}
+                            {% if user.is_client %}
+                                <a class="btn btn-gradient w-100 rounded-pill" href="{% url 'jobs:create' %}">Dodaj zlecenie</a>
+                            {% else %}
+                                <a class="btn btn-gradient w-100 rounded-pill" href="{% url 'jobs:list' %}">Zgłoś się do zlecenia</a>
+                            {% endif %}
+                        {% else %}
+                            <a class="btn btn-gradient w-100 rounded-pill" href="{% url 'accounts:register' %}">Zgłoś się do zlecenia</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

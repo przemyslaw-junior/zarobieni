@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Opinia{% endblock %}
+{% block content %}
+<h2>Wystaw opinię dla {{ reviewee.username }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-success" type="submit">Zapisz opinię</button>
+</form>
+{% endblock %}

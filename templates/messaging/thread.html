@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Czat{% endblock %}
+{% block content %}
+<h2>Czat dla zlecenia: {{ zlecenie.tytul }}</h2>
+<div class="mb-3 border rounded p-3 bg-light">
+    {% for w in wiadomosci %}
+        <div class="mb-2">
+            <strong>{{ w.nadawca.username }}</strong> <small class="text-muted">{{ w.created_at|date:"Y-m-d H:i" }}</small>
+            <p class="mb-0">{{ w.tresc }}</p>
+        </div>
+    {% empty %}
+        <p>Brak wiadomości.</p>
+    {% endfor %}
+</div>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary" type="submit">Wyślij</button>
+</form>
+{% endblock %}

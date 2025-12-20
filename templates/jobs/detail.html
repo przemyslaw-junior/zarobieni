@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ zlecenie.tytul }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2>{{ zlecenie.tytul }}</h2>
+    <span class="badge bg-light text-dark">{{ zlecenie.get_status_display }}</span>
+</div>
+<p class="text-muted">{{ zlecenie.miasto }} {{ zlecenie.dzielnica }} • {{ zlecenie.data_start }} • {{ zlecenie.czas_trwania_h }}h • {{ zlecenie.stawka_h }} PLN/h</p>
+<p>{{ zlecenie.opis }}</p>
+{% if zlecenie.ok_dla_niepelnoletnich %}<p><span class="badge bg-success">OK dla niepełnoletnich</span></p>{% endif %}
+
+{% if user.is_authenticated and user.is_worker and zlecenie.status == 'published' %}
+    <a class="btn btn-primary" href="{% url 'applications:create' zlecenie.pk %}">Zgłoś się</a>
+{% endif %}
+
+{% if user == zlecenie.owner %}
+    <a class="btn btn-outline-secondary" href="{% url 'jobs:edit' zlecenie.pk %}">Edytuj</a>
+    <a class="btn btn-outline-danger" href="{% url 'jobs:cancel' zlecenie.pk %}">Anuluj</a>
+{% endif %}
+
+<hr>
+<h5>Zgłoszenia</h5>
+{% for zg in zlecenie.zgloszenia.all %}
+    <div class="border rounded p-2 mb-2">
+        <div class="d-flex justify-content-between">
+            <div>
+                <strong>{{ zg.wykonawca.username }}</strong> • {{ zg.created_at|date:"Y-m-d H:i" }}
+                <p class="mb-1">{{ zg.wiadomosc }}</p>
+                {% if zg.proponowana_stawka %}<small>Stawka: {{ zg.proponowana_stawka }} PLN/h</small>{% endif %}
+            </div>
+            <div>
+                <span class="badge bg-light text-dark">{{ zg.get_status_display }}</span>
+                {% if user == zlecenie.owner and zg.status == 'pending' %}
+                    <div class="mt-1">
+                        <a class="btn btn-sm btn-success" href="{% url 'applications:accept' zg.pk %}">Akceptuj</a>
+                        <a class="btn btn-sm btn-outline-danger" href="{% url 'applications:decline' zg.pk %}">Odrzuć</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <p>Brak zgłoszeń.</p>
+{% endfor %}
+
+{% if zlecenie.accepted_application %}
+    <div class="mt-3">
+        <a class="btn btn-outline-primary" href="{% url 'messaging:thread' zlecenie.pk %}">Otwórz czat</a>
+        {% if zlecenie.status == 'completed' %}
+            <a class="btn btn-outline-success" href="{% url 'reviews:create' zlecenie.pk %}">Wystaw opinię</a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

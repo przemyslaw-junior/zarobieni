@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{% if edit %}Edytuj zlecenie{% else %}Nowe zlecenie{% endif %}{% endblock %}
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-card shadow-lg rounded-4 p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <p class="text-muted small mb-1">Uzupełnij szczegóły</p>
+                <h2 class="fw-bold mb-0">{% if edit %}Edytuj zlecenie{% else %}Dodaj zlecenie{% endif %}</h2>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm rounded-pill" href="{% url 'jobs:list' %}">Wróć do listy</a>
+        </div>
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="col-12">
+                <label class="form-label">Tytuł</label>
+                {{ form.tytul }}
+                {% if form.tytul.errors %}<div class="text-danger small">{{ form.tytul.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Opis</label>
+                {{ form.opis }}
+                {% if form.opis.errors %}<div class="text-danger small">{{ form.opis.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Kategoria</label>
+                {{ form.kategoria }}
+                {% if form.kategoria.errors %}<div class="text-danger small">{{ form.kategoria.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Miasto</label>
+                {{ form.miasto }}
+                {% if form.miasto.errors %}<div class="text-danger small">{{ form.miasto.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Dzielnica</label>
+                {{ form.dzielnica }}
+                {% if form.dzielnica.errors %}<div class="text-danger small">{{ form.dzielnica.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Data start</label>
+                {{ form.data_start }}
+                {% if form.data_start.errors %}<div class="text-danger small">{{ form.data_start.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Czas trwania (h)</label>
+                {{ form.czas_trwania_h }}
+                {% if form.czas_trwania_h.errors %}<div class="text-danger small">{{ form.czas_trwania_h.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Stawka (PLN/h)</label>
+                {{ form.stawka_h }}
+                {% if form.stawka_h.errors %}<div class="text-danger small">{{ form.stawka_h.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 d-flex align-items-center gap-2">
+                {{ form.ok_dla_niepelnoletnich }}
+                <label class="form-label mb-0">OK dla niepełnoletnich</label>
+                {% if form.ok_dla_niepelnoletnich.errors %}<div class="text-danger small">{{ form.ok_dla_niepelnoletnich.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="col-12">
+                <button class="btn btn-gradient w-100" type="submit">Zapisz</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

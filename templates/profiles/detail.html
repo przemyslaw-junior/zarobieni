@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Profil {{ profile_user.username }}{% endblock %}
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-card shadow-lg rounded-4 p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <p class="text-muted small mb-1">Profil wykonawcy</p>
+                <h2 class="fw-bold mb-0">{{ profile_user.username }}</h2>
+            </div>
+            {% if user == profile_user %}
+            <a class="btn btn-outline-secondary btn-sm rounded-pill" href="{% url 'profiles:edit' %}">Edytuj profil</a>
+            {% endif %}
+        </div>
+        {% if profile %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small mb-1">Stawka</div>
+                    <div class="fw-semibold">{{ profile.stawka_h }} PLN/h</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small mb-1">Dostępność</div>
+                    <div class="fw-semibold">{{ profile.get_dostepnosc_display }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small mb-1">Kategorie</div>
+                    <div class="fw-semibold">{{ profile.kategorie|join:", " }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small mb-1">OK dla niepełnoletnich</div>
+                    <div class="fw-semibold">{{ profile.ok_dla_niepelnoletnich|yesno:"Tak,Nie" }}</div>
+                </div>
+                <div class="col-12">
+                    <div class="text-muted small mb-1">Opis</div>
+                    <div class="fw-normal">{{ profile.bio|default:"Brak opisu" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small mb-1">Ocena</div>
+                    <div class="fw-semibold">{{ profile.rating_avg }} ({{ profile.rating_count }} opinii)</div>
+                </div>
+            </div>
+        {% else %}
+            <p class="mb-0">Brak profilu wykonawcy.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
