@@ -4,7 +4,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
 
+from accounts.forms import UserProfileForm
 from accounts.models import User
+from applications.models import Zgloszenie
 
 from .forms import ProfilWykonawcyForm
 from .models import ProfilWykonawcy
@@ -17,7 +19,12 @@ class ProfilDetailView(View):
     def get(self, request, username=None):
         user = get_object_or_404(User, username=username) if username else request.user
         profile = getattr(user, "worker_profile", None)
-        return render(request, self.template_name, {"profile_user": user, "profile": profile})
+        history = (
+            Zgloszenie.objects.select_related("zlecenie", "zlecenie__owner")
+            .filter(wykonawca=user, status__in=[Zgloszenie.Status.ACCEPTED, Zgloszenie.Status.COMPLETED])
+            .order_by("-decided_at", "-created_at")
+        )
+        return render(request, self.template_name, {"profile_user": user, "profile": profile, "history": history})
 
 
 @method_decorator(login_required, name="dispatch")
@@ -30,15 +37,18 @@ class ProfilUpdateView(View):
         )
         initial = {"kategorie": ", ".join(profile.kategorie)}
         form = ProfilWykonawcyForm(instance=profile, initial=initial)
-        return render(request, self.template_name, {"form": form})
+        user_form = UserProfileForm(instance=request.user)
+        return render(request, self.template_name, {"form": form, "user_form": user_form})
 
     def post(self, request):
         profile, _ = ProfilWykonawcy.objects.get_or_create(
             user=request.user, defaults={"stawka_h": 0, "kategorie": []}
         )
         form = ProfilWykonawcyForm(request.POST, instance=profile)
-        if form.is_valid():
+        user_form = UserProfileForm(request.POST, instance=request.user)
+        if form.is_valid() and user_form.is_valid():
             form.save()
+            user_form.save()
             messages.success(request, "Profil zapisany.")
             return redirect("profiles:detail", username=request.user.username)
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {"form": form, "user_form": user_form})

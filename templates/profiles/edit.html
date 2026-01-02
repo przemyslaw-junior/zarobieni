@@ -8,11 +8,40 @@
                 <p class="text-muted small mb-1">Uzupełnij dane</p>
                 <h2 class="fw-bold mb-0">Edytuj profil wykonawcy</h2>
             </div>
-            <a class="btn btn-outline-secondary btn-sm rounded-pill" href="{% url 'profiles:detail' profile_user.username %}">Podgląd</a>
+            <a class="btn btn-outline-secondary btn-sm rounded-pill" href="{% url 'profiles:me' %}">Podgląd</a>
         </div>
         <form method="post" class="row g-3">
             {% csrf_token %}
             {{ form.non_field_errors }}
+            {{ user_form.non_field_errors }}
+            <div class="col-md-6">
+                <label class="form-label">Imię</label>
+                {{ user_form.first_name }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Nazwisko</label>
+                {{ user_form.last_name }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">E-mail</label>
+                {{ user_form.email }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Data urodzenia</label>
+                {{ user_form.birth_date }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Telefon</label>
+                {{ user_form.phone_number }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Miasto</label>
+                {{ user_form.city }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Dzielnica</label>
+                {{ user_form.district }}
+            </div>
             <div class="col-md-6">
                 <label class="form-label">Stawka (PLN/h)</label>
                 {{ form.stawka_h }}

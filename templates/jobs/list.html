@@ -6,59 +6,56 @@
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
             <div>
                 <p class="text-muted small mb-1">Szybkie zlecenia i pomoc w Twojej okolicy</p>
-                <h2 class="fw-bold mb-0">{% if mode == 'client' %}Potrzebuję pomocy{% else %}Szukam zlecenia{% endif %}</h2>
+                <h2 class="fw-bold mb-0">{% if mode == 'client' %}Prośba o pomoc{% else %}Udzielę pomocy{% endif %}</h2>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end">
-                    <div class="text-muted small">Dziś dostępnych zleceń:</div>
+                    <div class="text-muted small">Dostępnych pozycji:</div>
                     <div class="fw-bold">{{ zlecenia|length }}</div>
                 </div>
                 {% if user.is_authenticated %}
-                    {% if user.is_client %}
-                        <a class="btn btn-gradient shadow-lg" href="{% url 'jobs:create' %}">+ Dodaj zlecenie</a>
-                    {% else %}
-                        <a class="btn btn-outline-dark rounded-pill" href="{% url 'jobs:list' %}?mode=client">Potrzebuję pomocy</a>
-                    {% endif %}
+                    <a class="btn btn-gradient shadow-lg" href="{% url 'jobs:create' %}">+ Dodaj zlecenie</a>
                 {% else %}
-                    <a class="btn btn-outline-dark rounded-pill" href="{% url 'accounts:register' %}">Potrzebuję pomocy</a>
+                    <a class="btn btn-outline-dark rounded-pill" href="{% url 'accounts:register' %}">Dołącz</a>
                 {% endif %}
             </div>
         </div>
 
         <div class="toggle-bar d-flex mt-2 mb-4 rounded-pill overflow-hidden">
-            <a class="flex-fill text-center py-2 {% if mode == 'worker' %}active{% endif %}" href="?mode=worker">Szukam zlecenia</a>
-            <a class="flex-fill text-center py-2 {% if mode == 'client' %}active{% endif %}" href="?mode=client">Potrzebuję pomocy</a>
+            <a class="flex-fill text-center py-2 {% if mode == 'worker' %}active{% endif %}" href="?mode=worker">Udzielę pomocy</a>
+            <a class="flex-fill text-center py-2 {% if mode == 'client' %}active{% endif %}" href="?mode=client">Prośba o pomoc</a>
         </div>
 
         <form method="get" class="filter-form row g-3 align-items-center mb-4">
             <input type="hidden" name="mode" value="{{ mode }}">
             <div class="col-lg-3 col-md-6">
                 <label class="form-label text-muted small mb-1">Miasto / dzielnica</label>
-                <input class="form-control form-control-lg" name="miasto" value="{{ form.miasto.value|stringformat:'s' }}" placeholder="np. Warszawa / Mokotów">
+                <input class="form-control form-control-lg" name="miasto" value="{{ form.miasto.value|default_if_none:'' }}" placeholder="np. Warszawa / Mokotów">
             </div>
             <div class="col-lg-9 col-md-6">
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                     <div class="form-check-chip">
                         <input class="btn-check" type="checkbox" name="tylko_dzis" id="f-dzis" value="on" {% if form.data.tylko_dzis %}checked{% endif %}>
-                        <label class="chip {% if form.data.tylko_dzis %}chip-active{% endif %}" for="f-dzis">Dziś</label>
+                        <label class="chip" for="f-dzis">Dziś</label>
                     </div>
                     <div class="form-check-chip">
                         <input class="btn-check" type="checkbox" name="tylko_weekend" id="f-weekend" value="on" {% if form.data.tylko_weekend %}checked{% endif %}>
-                        <label class="chip {% if form.data.tylko_weekend %}chip-active{% endif %}" for="f-weekend">Weekend</label>
+                        <label class="chip" for="f-weekend">Weekend</label>
                     </div>
+                    {% if mode == 'worker' %}
                     <div class="form-check-chip">
                         <input class="btn-check" type="checkbox" name="max_czas" id="f-czas" value="on" {% if form.data.max_czas %}checked{% endif %}>
-                        <label class="chip {% if form.data.max_czas %}chip-active{% endif %}" for="f-czas">Do 2h</label>
+                        <label class="chip" for="f-czas">Do 2h</label>
                     </div>
                     <div class="form-check-chip">
                         <input class="btn-check" type="checkbox" name="max_stawka" id="f-stawka" value="on" {% if form.data.max_stawka %}checked{% endif %}>
-                        <label class="chip {% if form.data.max_stawka %}chip-active{% endif %}" for="f-stawka">Do 40 zł/h</label>
+                        <label class="chip" for="f-stawka">Do 40 zł/h</label>
                     </div>
+                    {% endif %}
                     <div class="form-check-chip">
                         <input class="btn-check" type="checkbox" name="ok_dla_niepelnoletnich" id="f-mlodzi" value="on" {% if form.data.ok_dla_niepelnoletnich %}checked{% endif %}>
-                        <label class="chip {% if form.data.ok_dla_niepelnoletnich %}chip-active{% endif %}" for="f-mlodzi">Dla niepełnoletnich OK</label>
+                        <label class="chip" for="f-mlodzi">Dla niepełnoletnich OK</label>
                     </div>
-                    <button class="btn btn-outline-secondary btn-sm" type="submit">Filtruj</button>
                     <a class="ms-1 small" href="?mode={{ mode }}">Wyczyść</a>
                 </div>
             </div>
@@ -67,35 +64,45 @@
         <div class="row g-4">
             <div class="col-lg-8">
                 {% if mode == 'client' %}
-                    <h5 class="fw-bold mb-2">Twoje zlecenia</h5>
-                    <p class="text-muted small mb-3">Przejrzyj statusy i edytuj swoje ogłoszenia</p>
-                    {% if user.is_authenticated and user.is_client %}
-                        {% for z in zlecenia %}
-                        <div class="job-card shadow-sm rounded-3 p-3 mb-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <a class="job-title" href="{{ z.get_absolute_url }}">{{ z.tytul }}</a>
-                                    <div class="text-muted small">
-                                        {{ z.data_start }} • {{ z.miasto }}{% if z.dzielnica %}, {{ z.dzielnica }}{% endif %} • {{ z.kategoria }}
+                    <h5 class="fw-bold mb-2">Osoby chętne do pomocy</h5>
+                    <p class="text-muted small mb-3">Zobacz profil, dostępność i wybierz osobę</p>
+                    {% for p in zlecenia %}
+                    <div class="job-card shadow-sm rounded-3 p-3 mb-3">
+                        <div class="d-flex">
+                            <div class="avatar me-3">{{ p.user.username|first|upper }}</div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="job-title">{{ p.user.username }}</div>
+                                        <div class="text-muted small">
+                                            {{ p.user.city }}{% if p.user.district %}, {{ p.user.district }}{% endif %} • {{ p.get_dostepnosc_display }}
+                                        </div>
                                     </div>
-                                    <p class="mb-1 text-muted small">{{ z.opis|truncatewords:24 }}</p>
+                                    <div class="text-end">
+                                        <div class="price text-success fw-bold">{{ p.stawka_h }} zł/h</div>
+                                        <span class="badge bg-light text-dark">{% if p.ok_dla_niepelnoletnich %}OK 16+{% else %}Tylko pełnoletni{% endif %}</span>
+                                    </div>
                                 </div>
-                                <div class="text-end">
-                                    <span class="badge bg-light text-dark">{{ z.get_status_display }}</span>
-                                    <div class="fw-bold mt-1 text-success">{{ z.stawka_h }} zł/h</div>
+                                <p class="mb-2 text-muted small">{{ p.bio|default:"Brak opisu" }}</p>
+                                {% if p.kategorie %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for cat in p.kategorie %}<span class="chip muted">{{ cat }}</span>{% endfor %}
                                 </div>
-                            </div>
-                            <div class="d-flex gap-2 mt-2 flex-wrap">
-                                <a class="btn btn-outline-secondary btn-sm" href="{% url 'jobs:edit' z.pk %}">Edytuj</a>
-                                <a class="btn btn-outline-danger btn-sm" href="{% url 'jobs:cancel' z.pk %}">Anuluj</a>
+                                {% endif %}
+                                <div class="mt-3 d-flex gap-2 flex-wrap">
+                                    <a class="btn btn-primary btn-sm" href="{% url 'profiles:detail' p.user.username %}">Zobacz profil</a>
+                                    {% if user.is_authenticated %}
+                                        <span class="text-muted small">Po wyborze osoby dodaj zlecenie i wyślij zgłoszenie.</span>
+                                    {% else %}
+                                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:login' %}">Zaloguj, aby wybrać</a>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
-                        {% empty %}
-                            <p>Nie masz jeszcze zleceń. Dodaj pierwsze, aby znaleźć pomoc w okolicy.</p>
-                        {% endfor %}
-                    {% else %}
-                        <p>Aby zobaczyć swoje zlecenia, <a href="{% url 'accounts:login' %}">zaloguj się</a> lub <a href="{% url 'accounts:register' %}">zarejestruj jako zleceniodawca</a>.</p>
-                    {% endif %}
+                    </div>
+                    {% empty %}
+                        <p>Brak ofert pomocy. Dodaj zlecenie lub wróć później.</p>
+                    {% endfor %}
                 {% else %}
                     <h5 class="fw-bold mb-2">Zlecenia w Twojej okolicy</h5>
                     <p class="text-muted small mb-3">Kliknij, aby zobaczyć szczegóły i zgłosić się</p>
@@ -108,7 +115,15 @@
                                     <div>
                                         <a class="job-title" href="{{ z.get_absolute_url }}">{{ z.tytul }}</a>
                                         <div class="text-muted small">
-                                            {{ z.data_start }} • {{ z.miasto }}{% if z.dzielnica %}, {{ z.dzielnica }}{% endif %} • {{ z.kategoria }}
+                                            {{ z.data_start }} • {{ z.miasto }}{% if z.dzielnica %}, {{ z.dzielnica }}{% endif %} • {{ z.kategoria }} • Autor: <strong>{{ z.owner.username }}</strong>
+                                        </div>
+                                        <div class="text-muted small">
+                                            Status: {{ z.get_status_display }} • Zgłoszeń: {{ z.zgloszenia.count }} •
+                                            {% if z.accepted_application %}
+                                                Przyjęte: {{ z.accepted_application.wykonawca.username }}
+                                            {% else %}
+                                                Przyjęte: —
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="text-end">
@@ -117,6 +132,17 @@
                                     </div>
                                 </div>
                                 <p class="mb-2 text-muted small">{{ z.opis|truncatewords:22 }}</p>
+                                {% if my_applications %}
+                                    {% for app in my_applications %}
+                                        {% if app.zlecenie_id == z.id %}
+                                            <div class="mb-2">
+                                                <span class="badge {% if app.status == 'accepted' %}bg-success text-white{% elif app.status == 'pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                                    Twoje zgłoszenie: {{ app.get_status_display }}
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
                                 <div class="d-flex flex-wrap gap-2">
                                     <span class="chip muted">czas: {{ z.czas_trwania_h }}h</span>
                                     {% if z.ok_dla_niepelnoletnich %}<span class="chip chip-active">OK dla 16+</span>{% endif %}
@@ -126,42 +152,91 @@
                         </div>
                     </div>
                     {% empty %}
-                    <p>Brak zleceń.</p>
+                        <p>Brak zleceń.</p>
                     {% endfor %}
                 {% endif %}
             </div>
             <div class="col-lg-4">
-                <div class="profile-card shadow-sm rounded-3 p-3">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="profile-avatar me-3">👤</div>
-                        <div>
-                            <div class="fw-bold">Przykładowy profil wykonawcy</div>
-                            <div class="text-muted small">Idealne dla młodych osób szukających fuch</div>
+                {% include "partials/profile_sidebar.html" with sidebar_profile=sidebar_profile sidebar_mode="list" %}
+                {% if accepted_history %}
+                <div class="card mt-3">
+                    <div class="fw-bold">Twoje zaakceptowane zgłoszenia</div>
+                    <div class="text-muted small mb-2">Aktywne i zakończone, od najnowszych.</div>
+                    <div style="max-height: 260px; overflow-y: auto;">
+                    {% for zg in accepted_history %}
+                        <div class="border rounded-3 p-2 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="fw-semibold">
+                                        <a class="text-decoration-none" href="{{ zg.zlecenie.get_absolute_url }}">{{ zg.zlecenie.tytul }}</a>
+                                    </div>
+                                    <div class="text-muted small">
+                                        {{ zg.zlecenie.miasto }}{% if zg.zlecenie.dzielnica %}, {{ zg.zlecenie.dzielnica }}{% endif %} • {{ zg.zlecenie.owner.username }}
+                                    </div>
+                                    <div class="text-muted small">Status: {{ zg.get_status_display }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="badge {% if zg.status == zg.Status.COMPLETED %}bg-success text-white{% else %}bg-warning text-dark{% endif %}">
+                                        {% if zg.status == zg.Status.COMPLETED %}Zakończone{% else %}Aktywne{% endif %}
+                                    </div>
+                                    <div class="text-muted small">{{ zg.decided_at|date:"Y-m-d H:i" }}</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="border rounded-3 p-3">
-                        <div class="fw-bold">Michał, 17 lat</div>
-                        <div class="text-muted small">Licealista • Warszawa, Ursynów</div>
-                        <div class="text-warning small">★ 4.8 (19 opinii)</div>
-                        <div class="chip-row my-2">
-                            <span class="chip muted">25–40 zł/h</span>
-                            <span class="chip muted">Popołudnia + weekend</span>
-                            <span class="chip muted">OK dla niepełnoletnich</span>
-                        </div>
-                        <p class="text-muted small mb-2">Szukam drobnych zleceń po szkole i w weekendy – mogę wyprowadzić psa, skosić trawnik, wynieść rzeczy do piwnicy albo zrobić zakupy.</p>
-                        {% if user.is_authenticated %}
-                            {% if user.is_client %}
-                                <a class="btn btn-gradient w-100 rounded-pill" href="{% url 'jobs:create' %}">Dodaj zlecenie</a>
-                            {% else %}
-                                <a class="btn btn-gradient w-100 rounded-pill" href="{% url 'jobs:list' %}">Zgłoś się do zlecenia</a>
-                            {% endif %}
-                        {% else %}
-                            <a class="btn btn-gradient w-100 rounded-pill" href="{% url 'accounts:register' %}">Zgłoś się do zlecenia</a>
-                        {% endif %}
+                    {% endfor %}
                     </div>
                 </div>
+                {% endif %}
+                {% if my_posted_jobs %}
+                <div class="card mt-3">
+                    <div class="fw-bold">Twoje zlecenia</div>
+                    <div class="text-muted small mb-2">Widoczne tylko dla Ciebie.</div>
+                    <div style="max-height: 260px; overflow-y: auto;">
+                    {% for job in my_posted_jobs %}
+                        <div class="border rounded-3 p-2 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="fw-semibold">
+                                        <a class="text-decoration-none" href="{{ job.get_absolute_url }}">{{ job.tytul }}</a>
+                                    </div>
+                                    <div class="text-muted small">
+                                        {{ job.miasto }}{% if job.dzielnica %}, {{ job.dzielnica }}{% endif %}
+                                    </div>
+                                    <div class="text-muted small">Status: {{ job.get_status_display }}</div>
+                                    {% if job.accepted_application %}
+                                        <div class="text-muted small">Przypisany: {{ job.accepted_application.wykonawca.username }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <div class="badge bg-light text-dark">{{ job.get_status_display }}</div>
+                                    <div class="text-muted small">{{ job.data_start }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+<script>
+(function() {
+    const form = document.querySelector('.filter-form');
+    if (!form) return;
+    const submitNow = () => (form.requestSubmit ? form.requestSubmit() : form.submit());
+    let timer = null;
+    form.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.addEventListener('change', submitNow);
+    });
+    form.querySelectorAll('input[type="text"]').forEach((input) => {
+        input.addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(submitNow, 400);
+        });
+        input.addEventListener('change', submitNow);
+    });
+})();
+</script>
 {% endblock %}

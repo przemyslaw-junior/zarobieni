@@ -1,54 +1,95 @@
 {% extends "base.html" %}
 {% block title %}{{ zlecenie.tytul }}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <h2>{{ zlecenie.tytul }}</h2>
-    <span class="badge bg-light text-dark">{{ zlecenie.get_status_display }}</span>
+{% if my_application and my_application.status == 'pending' %}
+<div class="alert alert-warning shadow-sm d-flex justify-content-between align-items-center">
+    <div>Twoje zgłoszenie czeka na weryfikację autora zlecenia.</div>
+    <span class="badge bg-warning text-dark text-uppercase">Oczekuje</span>
 </div>
-<p class="text-muted">{{ zlecenie.miasto }} {{ zlecenie.dzielnica }} • {{ zlecenie.data_start }} • {{ zlecenie.czas_trwania_h }}h • {{ zlecenie.stawka_h }} PLN/h</p>
-<p>{{ zlecenie.opis }}</p>
-{% if zlecenie.ok_dla_niepelnoletnich %}<p><span class="badge bg-success">OK dla niepełnoletnich</span></p>{% endif %}
-
-{% if user.is_authenticated and user.is_worker and zlecenie.status == 'published' %}
-    <a class="btn btn-primary" href="{% url 'applications:create' zlecenie.pk %}">Zgłoś się</a>
+{% elif my_application and my_application.status == 'rejected' %}
+<div class="alert alert-danger shadow-sm d-flex justify-content-between align-items-center">
+    <div>Twoje zgłoszenie zostało odrzucone.</div>
+    <span class="badge bg-danger text-uppercase">Odrzucone</span>
+</div>
 {% endif %}
-
-{% if user == zlecenie.owner %}
-    <a class="btn btn-outline-secondary" href="{% url 'jobs:edit' zlecenie.pk %}">Edytuj</a>
-    <a class="btn btn-outline-danger" href="{% url 'jobs:cancel' zlecenie.pk %}">Anuluj</a>
+{% if zlecenie.accepted_application and user == zlecenie.accepted_application.wykonawca %}
+<div class="alert alert-success shadow-sm d-flex justify-content-between align-items-center">
+    <div>Twoje zgłoszenie zostało zaakceptowane. Możesz pisać na czacie.</div>
+    <a class="btn btn-sm btn-success" href="{% url 'messaging:thread' zlecenie.pk %}">Przejdź do czatu</a>
+</div>
 {% endif %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-4 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="mb-0">{{ zlecenie.tytul }}</h2>
+            <span class="badge bg-light text-dark">{{ zlecenie.get_status_display }}</span>
+        </div>
+        <p class="text-muted">
+            {{ zlecenie.miasto }}{% if zlecenie.dzielnica %}, {{ zlecenie.dzielnica }}{% endif %}
+            • {{ zlecenie.data_start }} • {{ zlecenie.czas_trwania_h }}h • {{ zlecenie.stawka_h }} PLN/h
+            • Autor: {{ zlecenie.owner.username }}
+            • Zgłoszeń: {{ zlecenie.zgloszenia.count }}
+            {% if zlecenie.accepted_application %}• Przyjęte: {{ zlecenie.accepted_application.wykonawca.username }}{% endif %}
+        </p>
+        <p>{{ zlecenie.opis }}</p>
+        {% if zlecenie.ok_dla_niepelnoletnich %}<p><span class="badge bg-success">OK dla niepełnoletnich</span></p>{% endif %}
 
-<hr>
-<h5>Zgłoszenia</h5>
-{% for zg in zlecenie.zgloszenia.all %}
-    <div class="border rounded p-2 mb-2">
-        <div class="d-flex justify-content-between">
-            <div>
-                <strong>{{ zg.wykonawca.username }}</strong> • {{ zg.created_at|date:"Y-m-d H:i" }}
-                <p class="mb-1">{{ zg.wiadomosc }}</p>
-                {% if zg.proponowana_stawka %}<small>Stawka: {{ zg.proponowana_stawka }} PLN/h</small>{% endif %}
-            </div>
-            <div>
-                <span class="badge bg-light text-dark">{{ zg.get_status_display }}</span>
-                {% if user == zlecenie.owner and zg.status == 'pending' %}
-                    <div class="mt-1">
-                        <a class="btn btn-sm btn-success" href="{% url 'applications:accept' zg.pk %}">Akceptuj</a>
-                        <a class="btn btn-sm btn-outline-danger" href="{% url 'applications:decline' zg.pk %}">Odrzuć</a>
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            {% if user.is_authenticated and zlecenie.status == 'published' and zlecenie.has_capacity and user != zlecenie.owner %}
+                <a class="btn btn-primary" href="{% url 'applications:create' zlecenie.pk %}">Zgłoś się</a>
+            {% endif %}
+            {% if user == zlecenie.owner %}
+                <a class="btn btn-outline-secondary" href="{% url 'jobs:edit' zlecenie.pk %}">Edytuj</a>
+                <a class="btn btn-outline-danger" href="{% url 'jobs:cancel' zlecenie.pk %}">Anuluj</a>
+            {% endif %}
+        </div>
+
+        <hr>
+        <h5>Zgłoszenia</h5>
+        {% for zg in zlecenie.zgloszenia.all %}
+            <div class="border rounded p-3 mb-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong>{{ zg.wykonawca.username }}</strong> • {{ zg.created_at|date:"Y-m-d H:i" }}
+                        <p class="mb-1">{{ zg.wiadomosc }}</p>
+                        {% if zg.proponowana_stawka %}<small>Stawka: {{ zg.proponowana_stawka }} PLN/h</small>{% endif %}
+                        {% if user == zg.wykonawca and zg.status == 'pending' %}
+                            <div class="text-muted small mt-1">Czeka na akceptację autora zlecenia.</div>
+                        {% endif %}
                     </div>
+                    <div class="text-end">
+                        <span class="badge bg-light text-dark">{{ zg.get_status_display }}</span>
+                        {% if user == zlecenie.owner and zg.status == 'pending' %}
+                        <div class="mt-1 d-flex gap-1 flex-wrap justify-content-end">
+                            <a class="btn btn-sm btn-success" href="{% url 'applications:accept' zg.pk %}">Akceptuj</a>
+                            <a class="btn btn-sm btn-outline-danger" href="{% url 'applications:decline' zg.pk %}">Odrzuć</a>
+                        </div>
+                        {% endif %}
+                        {% if user == zlecenie.owner and zg.status == 'accepted' %}
+                        <div class="mt-1">
+                            <a class="btn btn-sm btn-outline-success" href="{% url 'applications:complete' zg.pk %}">Oznacz zakończone</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>Brak zgłoszeń.</p>
+        {% endfor %}
+
+        {% if zlecenie.accepted_application %}
+            <div class="mt-3 d-flex gap-2">
+                <a class="btn btn-outline-primary" href="{% url 'messaging:thread' zlecenie.pk %}">Otwórz czat</a>
+                {% if zlecenie.status == 'completed' %}
+                    <a class="btn btn-outline-success" href="{% url 'reviews:create' zlecenie.pk %}">Wystaw opinię</a>
                 {% endif %}
             </div>
+        {% endif %}
         </div>
     </div>
-{% empty %}
-    <p>Brak zgłoszeń.</p>
-{% endfor %}
-
-{% if zlecenie.accepted_application %}
-    <div class="mt-3">
-        <a class="btn btn-outline-primary" href="{% url 'messaging:thread' zlecenie.pk %}">Otwórz czat</a>
-        {% if zlecenie.status == 'completed' %}
-            <a class="btn btn-outline-success" href="{% url 'reviews:create' zlecenie.pk %}">Wystaw opinię</a>
-        {% endif %}
+    <div class="col-lg-4">
+        {% include "partials/profile_sidebar.html" with sidebar_profile=user.worker_profile sidebar_mode="detail" %}
     </div>
-{% endif %}
+</div>
 {% endblock %}

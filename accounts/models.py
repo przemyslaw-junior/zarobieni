@@ -6,14 +6,9 @@ from django.db import models
 
 
 class User(AbstractUser):
-    ROLE_CLIENT = "client"
-    ROLE_WORKER = "worker"
-    ROLE_CHOICES = [
-        (ROLE_CLIENT, "Zleceniodawca"),
-        (ROLE_WORKER, "Wykonawca"),
-    ]
-
-    role = models.CharField(max_length=12, choices=ROLE_CHOICES)
+    # role pozostawione jako opcjonalne pole tekstowe dla zgodności migracji,
+    # ale logika aplikacji nie wymaga już wyboru roli (użytkownik może pełnić oba tryby).
+    role = models.CharField(max_length=12, blank=True)
     city = models.CharField(max_length=64, blank=True)
     district = models.CharField(max_length=64, blank=True)
     birth_date = models.DateField(null=True, blank=True)
@@ -36,11 +31,11 @@ class User(AbstractUser):
 
     @property
     def is_client(self):
-        return self.role == self.ROLE_CLIENT
+        return True
 
     @property
     def is_worker(self):
-        return self.role == self.ROLE_WORKER
+        return True
 
     class Meta:
         verbose_name = "Użytkownik"

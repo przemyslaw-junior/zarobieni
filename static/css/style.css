@@ -65,6 +65,7 @@ body {
 .chip {
     display: inline-flex;
     align-items: center;
+    gap: 6px;
     padding: 6px 12px;
     border-radius: 999px;
     background: #eef2ff;
@@ -105,10 +106,24 @@ body {
     opacity: 0;
 }
 
+.form-check-chip .btn-check:checked + .chip {
+    background: #c8f7d8; /* jasna zieleń przy aktywnym filtrze */
+    color: #0b5c35;
+    border-color: #34d399;
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.35);
+    font-weight: 700;
+}
+
+.form-check-chip .btn-check:checked + .chip::before {
+    content: "✓";
+    font-size: 0.9em;
+}
+
 .job-card {
     background: #fff;
     border: 1px solid #e5e7eb;
     transition: transform 0.05s ease, box-shadow 0.05s ease;
+    color: #0f172a;
 }
 
 .job-title {
@@ -192,6 +207,7 @@ body {
     max-width: 720px;
     width: 100%;
     box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+    color: #0f172a;
 }
 
 .form-card .form-control,
@@ -243,6 +259,29 @@ body {
     opacity: 0.95;
 }
 
+.btn-secondary {
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12px;
+    border: 1px solid #0f172a;
+    background: #0f172a;
+    color: #f9fafb;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.btn-secondary:hover {
+    background: #111827;
+}
+
+.profile-card .chip {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
 .list-wrapper {
     display: flex;
     justify-content: center;
@@ -258,4 +297,62 @@ body {
 .job-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.chat-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.chat-card {
+    max-width: 960px;
+    width: 100%;
+}
+
+.chat-messages {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.chat-message {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-message.me {
+    align-items: flex-end;
+}
+
+.chat-message.them {
+    align-items: flex-start;
+}
+
+.chat-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.chat-bubble {
+    background: #eef2ff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 10px 12px;
+    max-width: 620px;
+}
+
+.chat-message.me .chat-bubble {
+    background: #d1fae5;
+    border-color: #34d399;
+}
+
+.chat-input textarea {
+    background: #f8fafc;
+    border-radius: 12px;
 }

@@ -1,20 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Czat{% endblock %}
 {% block content %}
-<h2>Czat dla zlecenia: {{ zlecenie.tytul }}</h2>
-<div class="mb-3 border rounded p-3 bg-light">
-    {% for w in wiadomosci %}
-        <div class="mb-2">
-            <strong>{{ w.nadawca.username }}</strong> <small class="text-muted">{{ w.created_at|date:"Y-m-d H:i" }}</small>
-            <p class="mb-0">{{ w.tresc }}</p>
+<div class="chat-wrapper">
+    <div class="glass-card chat-card shadow-lg p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+            <div>
+                <p class="text-muted small mb-1">Czat dla zlecenia</p>
+                <h2 class="mb-1">{{ zlecenie.tytul }}</h2>
+                <div class="text-muted small">Zleceniodawca: {{ zlecenie.owner.username }} • Pomagający: {{ worker.username }}</div>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ zlecenie.get_absolute_url }}">Powrót do zlecenia</a>
         </div>
-    {% empty %}
-        <p>Brak wiadomości.</p>
-    {% endfor %}
+
+        <div class="chat-messages">
+            {% for w in wiadomosci %}
+                <div class="chat-message {% if w.nadawca == user %}me{% else %}them{% endif %}">
+                    <div class="chat-meta">
+                        <strong>{{ w.nadawca.username }}</strong>
+                        <span class="text-muted small">{{ w.created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                    <div class="chat-bubble">{{ w.tresc|linebreaksbr }}</div>
+                </div>
+            {% empty %}
+                <div class="text-center text-muted py-3">Brak wiadomości.</div>
+            {% endfor %}
+        </div>
+
+        <form method="post" class="chat-input mt-3">
+            {% csrf_token %}
+            <div class="mb-2">
+                <label class="form-label small text-muted" for="chat-message">Treść</label>
+                <textarea id="chat-message" name="{{ form.tresc.name }}" class="form-control" rows="3" required></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Wyślij</button>
+        </form>
+    </div>
 </div>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary" type="submit">Wyślij</button>
-</form>
 {% endblock %}

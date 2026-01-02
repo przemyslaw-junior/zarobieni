@@ -1,12 +1,210 @@
 {% extends "base.html" %}
-{% block title %}zarobieni.pl - lokalne zlecenia{% endblock %}
+{% block title %}zarobieni.pl - szybkie zlecenia{% endblock %}
 {% block content %}
-<div class="p-4 bg-light rounded-3 mb-4">
-    <h1 class="display-5">Zarobieni.pl</h1>
-    <p class="lead">Lokalny marketplace drobnych zleceń. Znajdź pomoc lub dorób w okolicy.</p>
-    <a class="btn btn-primary btn-lg" href="{% url 'jobs:list' %}">Przeglądaj zlecenia</a>
-    {% if user.is_authenticated and user.is_client %}
-    <a class="btn btn-outline-primary btn-lg" href="{% url 'jobs:create' %}">Dodaj zlecenie</a>
-    {% endif %}
+<style>
+    .landing-wrapper {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+    .landing-card {
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.5);
+        padding: 22px 26px 26px;
+    }
+    .landing-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+    .logo-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #22c55e, #a3e635);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    .logo-icon::before,
+    .logo-icon::after {
+        content: "";
+        position: absolute;
+        border-radius: 2px;
+        background: #f7fee7;
+    }
+    .logo-icon::before {
+        width: 16px;
+        height: 2px;
+        top: 12px;
+        left: 9px;
+        box-shadow: 0 6px 0 #f7fee7, 0 12px 0 #f7fee7;
+    }
+    .logo-icon::after {
+        width: 4px;
+        height: 4px;
+        top: 10px;
+        left: 6px;
+        box-shadow: 0 6px 0 #f7fee7, 0 12px 0 #f7fee7;
+    }
+    .logo-text-title { font-size: 22px; font-weight: 800; letter-spacing: 0.5px; }
+    .logo-text-title span { color: #22c55e; }
+    .logo-text-sub { font-size: 12px; color: #6b7280; }
+    .header-cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn-main {
+        border-radius: 999px;
+        padding: 9px 18px;
+        border: none;
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: #fff7ed;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 10px 22px rgba(248, 113, 113, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .mode-switch { display: flex; gap: 6px; margin-bottom: 18px; padding: 4px; border-radius: 999px; background: #f3f4f6; }
+    .mode-pill { flex: 1; text-align: center; font-size: 13px; border-radius: 999px; padding: 7px 10px; color: #6b7280; background: transparent; border: none; }
+    .mode-pill.active { background: #0f172a; color: #f9fafb; }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .filter-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #6b7280; }
+    .chip-input { padding: 8px 12px; border-radius: 999px; border: 1px solid #e5e7eb; font-size: 13px; min-width: 200px; }
+    .chip { padding: 6px 10px; border-radius: 999px; border: 1px solid #e5e7eb; font-size: 12px; color: #4b5563; background: #fff; }
+    .chip--active { border-color: #22c55e; color: #15803d; background: #ecfdf3; }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2.2fr); gap: 18px; }
+    .card { border-radius: 16px; border: 1px solid #e5e7eb; background: #ffffff; padding: 16px; }
+    .listing-item { display: grid; grid-template-columns: auto minmax(0, 1.3fr) auto; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid #e5e7eb; }
+    .listing-title { font-size: 14px; font-weight: 600; }
+    .listing-meta { font-size: 11px; color: #6b7280; }
+    .listing-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+    .tag { font-size: 10px; padding: 3px 6px; border-radius: 999px; background: #f3f4f6; color: #4b5563; }
+    .listing-price { text-align: right; font-size: 13px; }
+    .price-main { font-weight: 700; color: #16a34a; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0 12px; }
+    .detail-pill { padding: 8px 10px; border-radius: 12px; background: #f9fafb; border: 1px solid #e5e7eb; font-size: 12px; }
+    @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+</style>
+<div class="landing-wrapper">
+    <div class="landing-card">
+        <header class="landing-header">
+            <div class="d-flex align-items-center gap-2">
+                <div class="logo-icon"></div>
+                <div>
+                    <div class="logo-text-title">zarobieni<span>.pl</span></div>
+                    <div class="logo-text-sub">Szybkie zlecenia i pomoc w Twojej okolicy</div>
+                </div>
+            </div>
+            <div class="header-cta">
+                <div class="text-muted small">Dziś dostępnych zleceń: <strong>58</strong></div>
+                {% if user.is_authenticated %}
+                <a class="btn-main text-decoration-none" href="{% url 'jobs:list' %}">Przejdź do zleceń</a>
+                {% else %}
+                <a class="btn-main text-decoration-none" href="{% url 'accounts:register' %}">+ Dodaj zlecenie</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="mode-switch">
+            <button class="mode-pill active">Szukam zlecenia</button>
+            <button class="mode-pill">Potrzebuję pomocy</button>
+        </div>
+
+        <div class="filters">
+            <div class="filter-label">Filtry:</div>
+            <input class="chip-input" placeholder="Miasto / dzielnica" />
+            <div class="chip chip--active">Dziś</div>
+            <div class="chip">Weekend</div>
+            <div class="chip">Do 2 h</div>
+            <div class="chip">Do 40 zł / h</div>
+            <div class="chip">Dla niepełnoletnich OK</div>
+        </div>
+
+        <section class="content-grid">
+            <div class="card">
+                <div class="d-flex justify-content-between align-items-baseline mb-2">
+                    <div>
+                        <div class="fw-semibold">Zlecenia w Twojej okolicy</div>
+                        <div class="text-muted small">Kliknij, aby zobaczyć szczegóły i zgłosić się</div>
+                    </div>
+                    <span class="badge bg-light text-dark">przykłady</span>
+                </div>
+                <div class="listing-list">
+                    <article class="listing-item">
+                        <div class="job-icon job-icon--grass"></div>
+                        <div class="listing-main">
+                            <div class="listing-title">Koszenie trawnika przed domem</div>
+                            <div class="listing-meta">Dziś, 16:00–18:00 • Warszawa, Wawer • sprzęt na miejscu</div>
+                            <div class="listing-tags">
+                                <span class="tag">koszenie trawy</span><span class="tag">możliwe dla 16+</span><span class="tag">jednorazowe</span>
+                            </div>
+                        </div>
+                        <div class="listing-price">
+                            <div class="price-main">80 zł</div>
+                            <div class="text-muted small">za całe zlecenie</div>
+                        </div>
+                    </article>
+                    <article class="listing-item">
+                        <div class="job-icon job-icon--dog"></div>
+                        <div class="listing-main">
+                            <div class="listing-title">Codzienny spacer z psem (Luna)</div>
+                            <div class="listing-meta">Pon–pt, 18:00–18:45 • Warszawa, Mokotów</div>
+                            <div class="listing-tags">
+                                <span class="tag">wyprowadzanie psa</span><span class="tag">stałe zlecenie</span><span class="tag">mile widziani uczniowie</span>
+                            </div>
+                        </div>
+                        <div class="listing-price">
+                            <div class="price-main">30 zł / spacer</div>
+                            <div class="text-muted small">płatność tygodniowo</div>
+                        </div>
+                    </article>
+                    <article class="listing-item">
+                        <div class="job-icon job-icon--shop"></div>
+                        <div class="listing-main">
+                            <div class="listing-title">Zrobienie zakupów dla starszej pani</div>
+                            <div class="listing-meta">Jutro, ok. 10:00 • Warszawa, Praga-Południe</div>
+                            <div class="listing-tags">
+                                <span class="tag">zakupy</span><span class="tag">pomoc sąsiedzka</span><span class="tag">mile widziany ktoś z okolicy</span>
+                            </div>
+                        </div>
+                        <div class="listing-price">
+                            <div class="price-main">40 zł</div>
+                            <div class="text-muted small">zwrot za zakupy osobno</div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <aside class="card">
+                <div class="d-flex justify-content-between align-items-baseline mb-2">
+                    <div>
+                        <div class="fw-semibold">Przykładowy profil wykonawcy</div>
+                        <div class="text-muted small">Idealne dla młodych osób szukających fuch</div>
+                    </div>
+                </div>
+                <div class="detail-top d-flex align-items-center gap-2 mb-2">
+                    <div class="worker-avatar"></div>
+                    <div>
+                        <div class="fw-semibold">Michał, 17 lat</div>
+                        <div class="text-muted small">Licealista • Warszawa, Ursynów</div>
+                        <div class="text-warning small">★ 4.8 (19 opinii)</div>
+                    </div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-pill">25–40 zł / h</div>
+                    <div class="detail-pill">Popołudnia + weekendy</div>
+                    <div class="detail-pill">Spacery, koszenie, zakupy</div>
+                    <div class="detail-pill">OK dla niepełnoletnich</div>
+                </div>
+                <p class="text-muted small mb-3">
+                    Szukam drobnych zleceń po szkole i w weekendy – mogę wyprowadzić psa, skosić trawnik, wynieść rzeczy do piwnicy albo zrobić zakupy.
+                </p>
+                <a class="btn btn-secondary w-100" href="{% url 'accounts:login' %}">Zgłoś się do zlecenia</a>
+            </aside>
+        </section>
+    </div>
 </div>
 {% endblock %}

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
@@ -27,6 +28,7 @@ class Zlecenie(models.Model):
     stawka_h = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)])
     ok_dla_niepelnoletnich = models.BooleanField(default=False)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PUBLISHED)
+    helpers_needed = models.PositiveIntegerField(default=1)
     accepted_application = models.ForeignKey(
         "applications.Zgloszenie", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -49,6 +51,8 @@ class Zlecenie(models.Model):
         self.save(update_fields=["status"])
 
     def mark_in_progress(self, application):
+        if not self.has_capacity and self.accepted_application and self.accepted_application != application:
+            raise ValidationError("Zlecenie ma już wybranego pomagającego.")
         self.accepted_application = application
         self.status = self.STATUS_IN_PROGRESS
         self.save(update_fields=["accepted_application", "status"])
@@ -60,3 +64,10 @@ class Zlecenie(models.Model):
     def cancel(self):
         self.status = self.STATUS_CANCELLED
         self.save(update_fields=["status"])
+
+    @property
+    def has_capacity(self):
+        if self.helpers_needed <= 0:
+            return False
+        active_count = self.zgloszenia.filter(status="accepted").count()
+        return active_count < self.helpers_needed

@@ -12,7 +12,7 @@ Django (Python 3) marketplace lokalnych drobnych zleceń zgodny z SRS. Frontend:
 - Baza: SQLite (domyślnie)
 
 ## Instalacja (SQLite)
-1. `cd zarobieni_app`
+1. `cd zarobieni`
 2. (Opcjonalnie) virtualenv:
    - `python -m venv .venv`
    - Windows: `.venv\\Scripts\\activate`

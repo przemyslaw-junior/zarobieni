@@ -13,7 +13,6 @@ class UserRegistrationForm(forms.ModelForm):
         fields = [
             "username",
             "email",
-            "role",
             "city",
             "district",
             "birth_date",
@@ -36,11 +35,8 @@ class UserRegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for name, field in self.fields.items():
-            if name == "role":
-                field.widget.attrs.update({"class": "form-select form-select-lg"})
-            else:
-                field.widget.attrs.update({"class": "form-control form-control-lg"})
+        for field in self.fields.values():
+            field.widget.attrs.update({"class": "form-control form-control-lg"})
 
 
 class LoginForm(AuthenticationForm):
@@ -51,3 +47,16 @@ class LoginForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.update({"class": "form-control form-control-lg"})
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "birth_date", "phone_number", "city", "district"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs.update({"class": "form-control"})
+            if name == "birth_date":
+                field.widget.attrs.update({"type": "date"})

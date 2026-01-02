@@ -1,0 +1,51 @@
+<div class="profile-card shadow-sm rounded-3 p-3">
+    {% if sidebar_profile %}
+        <div class="d-flex align-items-center mb-3">
+            <div class="profile-avatar me-3">{{ sidebar_profile.user.username|first|upper }}</div>
+            <div>
+                <div class="fw-bold">{{ sidebar_profile.user.username }}</div>
+                <div class="text-muted small">{{ sidebar_profile.get_dostepnosc_display }}</div>
+            </div>
+        </div>
+        <div class="border rounded-3 p-3">
+            <div class="fw-bold">{{ sidebar_profile.user.first_name|default:sidebar_profile.user.username }}</div>
+            <div class="text-muted small">{{ sidebar_profile.user.city }}{% if sidebar_profile.user.district %}, {{ sidebar_profile.user.district }}{% endif %}</div>
+            <div class="text-warning small">&#9733; {{ sidebar_profile.rating_avg|default:"0.0" }} ({{ sidebar_profile.rating_count|default:"0" }} opinii)</div>
+            <div class="chip-row my-2">
+                <span class="chip muted">{{ sidebar_profile.stawka_h }} zł/h</span>
+                <span class="chip muted">{{ sidebar_profile.get_dostepnosc_display }}</span>
+                {% if sidebar_profile.ok_dla_niepelnoletnich %}<span class="chip muted">OK dla niepełnoletnich</span>{% endif %}
+                {% if sidebar_profile.kategorie %}{% for cat in sidebar_profile.kategorie %}<span class="chip muted">{{ cat }}</span>{% endfor %}{% endif %}
+            </div>
+            <p class="text-muted small mb-3">{{ sidebar_profile.bio|default:"Brak opisu" }}</p>
+            {% if user == sidebar_profile.user %}
+                <a class="btn btn-secondary w-100" href="{% url 'profiles:edit' %}">Edytuj profil</a>
+            {% else %}
+                <a class="btn btn-secondary w-100" href="{% url 'profiles:detail' sidebar_profile.user.username %}">Zgłoś się do zlecenia</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="d-flex align-items-center mb-2">
+            <div class="profile-avatar me-3">M</div>
+            <div>
+                <div class="fw-bold">Przykładowy profil wykonawcy</div>
+                <div class="text-muted small">Idealne dla młodych osób szukających fuch</div>
+            </div>
+        </div>
+        <div class="border rounded-3 p-3">
+            <div class="fw-bold">Michał, 17 lat</div>
+            <div class="text-muted small">Licealista • Warszawa, Ursynów</div>
+            <div class="text-warning small">&#9733; 4.8 (19 opinii)</div>
+            <div class="chip-row my-2">
+                <span class="chip muted">25–40 zł/h</span>
+                <span class="chip muted">Popołudnia + weekendy</span>
+                <span class="chip muted">OK dla niepełnoletnich</span>
+                <span class="chip muted">Spacery, koszenie, zakupy</span>
+            </div>
+            <p class="text-muted small mb-3">
+                Szukam drobnych zleceń po szkole i w weekendy – mogę wyprowadzić psa, skosić trawnik, wynieść rzeczy do piwnicy albo zrobić zakupy.
+            </p>
+            <a class="btn btn-secondary w-100" href="{% url 'accounts:login' %}">Zgłoś się do zlecenia</a>
+        </div>
+    {% endif %}
+</div>
